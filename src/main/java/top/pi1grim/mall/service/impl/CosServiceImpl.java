@@ -24,7 +24,7 @@ public class CosServiceImpl implements CosService {
     private String secretKey;
 
     @Override
-    @Cacheable("temporaryKey")
+    @Cacheable(value = "temporaryKey", key = "#type")
     public Response genTemporaryKey(KeyType type) {
         Response response;
         try {
@@ -65,7 +65,7 @@ public class CosServiceImpl implements CosService {
             log.error("get credential error!", e);
             throw new CosException(ErrorCode.GENERATE_KEY_FAIL, e);
         }
-        log.info("生成了临时key");
+        log.info("生成了临时key : " + type);
         return response;
     }
 }
