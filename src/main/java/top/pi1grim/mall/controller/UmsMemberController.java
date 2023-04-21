@@ -5,13 +5,16 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 import top.pi1grim.mall.common.utils.EntityUtils;
 import top.pi1grim.mall.common.utils.JWTUtils;
 import top.pi1grim.mall.core.constant.RedisConstant;
+import top.pi1grim.mall.core.constant.StringConstant;
 import top.pi1grim.mall.dto.LoginDTO;
+import top.pi1grim.mall.dto.MemberInfoDTO;
 import top.pi1grim.mall.dto.RegisterDTO;
 import top.pi1grim.mall.entity.UmsMember;
 import top.pi1grim.mall.exception.MemberException;
@@ -44,6 +47,13 @@ public class UmsMemberController {
 
     @Resource
     private StringRedisTemplate template;
+
+
+    private UmsMember getMember(HttpServletRequest request) {
+        String token = request.getHeader(StringConstant.TOKEN);
+        String json = template.boundValueOps(token).get();
+        return (UmsMember) JSON.parse(json);
+    }
 
     @PostMapping("/register")
     @Operation(summary = "注册API", description = "使用POST请求，成功则返回用户名，成功代码2005")
@@ -98,5 +108,15 @@ public class UmsMemberController {
         template.boundValueOps(token).set(JSON.toJSONString(member), RedisConstant.TOKEN_EXPIRE_TIME, TimeUnit.SECONDS);
         log.info("登录成功 ====> " + member);
         return Response.success(ResponseCode.LOGIN_SUCCESS, token);
+    }
+
+    @GetMapping("/info")
+    @Operation(summary = "获取用户信息API", description = "使用GET请求，在Header中携带token，成功则返回当前用户信息，成功代码2015")
+    public Response info(HttpServletRequest request) {
+        UmsMember member = getMember(request);
+        MemberInfoDTO dto = MemberInfoDTO.builder().build();
+        EntityUtils.assign(dto, member);
+        log.info("返回当前用户信息");
+        return Response.success(ResponseCode.RETURN_INFO_SUCCESS, dto);
     }
 }
