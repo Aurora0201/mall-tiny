@@ -60,15 +60,13 @@ public class UmsMemberController {
         }
 
         //插入数据库
-        member = new UmsMember()
-                .setUsername(registerDTO.getUsername())
-                .setPhone(registerDTO.getPhone())
-                .setGender(registerDTO.getGender())
-                .setPassword(registerDTO.getPassword())
-                .setCreatedTime(LocalDateTime.now());
+        member = new UmsMember().setCreatedTime(LocalDateTime.now());
+        EntityUtils.assign(member, registerDTO);
+
         if (Objects.nonNull(member)){
             memberService.save(member);
         }
+
         log.info("注册成功 ====> " + member);
         return Response.success(ResponseCode.REGISTER_SUCCESS, registerDTO.getUsername());
     }
