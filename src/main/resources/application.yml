@@ -3,7 +3,18 @@ spring:
     url: jdbc:mysql://101.42.30.159:3306/tiny_mall
     username: root
     password: ${PASSWORD}
-
+  data:
+    redis:
+      host: 101.42.30.159
+      password: ${PASSWORD}
+      cluster:
+        nodes:
+          - 101.42.30.159:6371
+          - 101.42.30.159:6372
+          - 101.42.30.159:6373
+          - 101.42.30.159:6374
+          - 101.42.30.159:6375
+          - 101.42.30.159:6376
 mybatis-plus:
   type-aliases-package: top.pi1grim.mall.entity
   configuration:

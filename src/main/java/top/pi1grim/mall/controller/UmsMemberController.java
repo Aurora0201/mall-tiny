@@ -1,5 +1,6 @@
 package top.pi1grim.mall.controller;
 
+import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -8,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 import top.pi1grim.mall.common.utils.EntityUtils;
+import top.pi1grim.mall.common.utils.JWTUtils;
+import top.pi1grim.mall.core.constant.RedisConstant;
 import top.pi1grim.mall.dto.LoginDTO;
 import top.pi1grim.mall.dto.RegisterDTO;
 import top.pi1grim.mall.entity.UmsMember;
@@ -19,6 +22,7 @@ import top.pi1grim.mall.type.ResponseCode;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <p>
@@ -90,7 +94,11 @@ public class UmsMemberController {
             throw new MemberException(ErrorCode.USERNAME_PASSWORD_MISMATCH, loginDTO);
         }
 
+        //先生成Token
+        String token = JWTUtils.genToken(loginDTO.getUsername());
+        //放入Redis中，设置存活时间
+        template.boundValueOps(token).set(JSON.toJSONString(member), RedisConstant.TOKEN_EXPIRE_TIME, TimeUnit.SECONDS);
         log.info("登录成功 ====> " + member);
-        return Response.success(ResponseCode.LOGIN_SUCCESS, loginDTO.getUsername());
+        return Response.success(ResponseCode.LOGIN_SUCCESS, token);
     }
 }
