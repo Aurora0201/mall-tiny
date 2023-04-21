@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import top.pi1grim.mall.response.Response;
+import top.pi1grim.mall.common.response.Response;
 import top.pi1grim.mall.service.CosService;
 import top.pi1grim.mall.type.KeyType;
 import top.pi1grim.mall.type.ResponseCode;
