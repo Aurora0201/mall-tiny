@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import top.pi1grim.mall.exception.BaseException;
-import top.pi1grim.mall.response.Response;
+import top.pi1grim.mall.common.response.Response;
 
 @ControllerAdvice
 @ResponseBody

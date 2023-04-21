@@ -1,4 +1,4 @@
-package top.pi1grim.mall.response;
+package top.pi1grim.mall.common.response;
 
 import lombok.Builder;
 import lombok.Data;
