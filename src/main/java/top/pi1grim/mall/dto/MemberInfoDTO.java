@@ -10,7 +10,7 @@ import java.time.LocalDate;
 public class MemberInfoDTO {
     private String nickname;
     private String avatar;
-    private String gender;
+    private Byte gender;
     private LocalDate birthday;
     private String city;
     private String job;
