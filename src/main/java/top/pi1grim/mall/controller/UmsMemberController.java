@@ -52,7 +52,7 @@ public class UmsMemberController {
     private UmsMember getMember(HttpServletRequest request) {
         String token = request.getHeader(StringConstant.TOKEN);
         String json = template.boundValueOps(token).get();
-        return (UmsMember) JSON.parse(json);
+        return JSON.parseObject(json, UmsMember.class);
     }
 
     @PostMapping("/register")
