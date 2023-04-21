@@ -49,7 +49,7 @@ public class UmsMemberController {
     @Operation(summary = "注册API", description = "使用POST请求，成功则返回用户名，成功代码2005")
     public Response register(@RequestBody RegisterDTO registerDTO) {
         //验证是否存在空字段
-        if(EntityUtils.fieldsIsNull(registerDTO)){
+        if(EntityUtils.fieldIsNull(registerDTO)){
             throw new MemberException(ErrorCode.ILLEGAL_REQUEST, registerDTO);
         }
 
@@ -76,7 +76,7 @@ public class UmsMemberController {
     @PostMapping("/login")
     @Operation(summary = "登录API", description = "使用POST请求，成功则返回用户名，成功代码2010")
     public Response login(@RequestBody LoginDTO loginDTO) {
-        if(EntityUtils.fieldsIsNull(loginDTO)){
+        if(EntityUtils.fieldIsNull(loginDTO)){
             throw new MemberException(ErrorCode.ILLEGAL_REQUEST, loginDTO);
         }
 
