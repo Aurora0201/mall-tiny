@@ -26,7 +26,7 @@ public class Generator {
                     builder
                             .entityBuilder()
                             .enableChainModel()
-                            .enableFileOverride()
+//                            .enableFileOverride()
                             .enableLombok()
                             .disableSerialVersionUID()
                             .serviceBuilder()

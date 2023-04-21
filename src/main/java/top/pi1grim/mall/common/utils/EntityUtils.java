@@ -5,6 +5,7 @@ import org.apache.commons.lang.StringUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.Objects;
 
 @Slf4j
@@ -36,5 +37,41 @@ public class EntityUtils {
             }
         }
         return false;
+    }
+
+    /*
+     * 将DTO对象中的同名字段的值赋值到指定的Entity对象中，前提是Entity提供了setter方法，DTO提供了getter方法
+     * */
+    public static void assign(Object entity, Object dto) {
+        if(Objects.isNull(entity) || Objects.isNull(dto)){
+            throw new RuntimeException("存在空对象");
+        }
+
+        HashMap<String, Method> map = new HashMap<>();
+
+        Class<?> dtoClass = dto.getClass();
+        Class<?> entityClass = entity.getClass();
+
+        try {
+            for (Field f : dtoClass.getDeclaredFields()) {
+                String name = f.getName();
+                String methodName = GET + name.toUpperCase().charAt(0) + name.substring(1);
+                Method getter = dtoClass.getDeclaredMethod(methodName);
+                map.put(name, getter);
+            }
+
+            for (Field f : entityClass.getDeclaredFields()) {
+                String name = f.getName();
+                Method getter = map.get(name);
+                if (Objects.nonNull(getter)) {
+                    String methodName = SET + name.toUpperCase().charAt(0) + name.substring(1);
+                    Method setter = entityClass.getDeclaredMethod(methodName, f.getType());
+                    Object o = getter.invoke(dto);
+                    setter.invoke(entity, o);
+                }
+            }
+        } catch (Exception e) {
+            log.error("error occur!", e);
+        }
     }
 }
