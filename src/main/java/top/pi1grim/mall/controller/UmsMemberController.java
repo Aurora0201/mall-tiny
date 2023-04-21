@@ -119,4 +119,19 @@ public class UmsMemberController {
         log.info("返回当前用户信息");
         return Response.success(ResponseCode.RETURN_INFO_SUCCESS, dto);
     }
+
+    @PostMapping("/info")
+    @Operation(summary = "修改用户信息API", description = "使用POST请求，在Header中携带token，成功则返回更新后用户信息，成功代码2020")
+    public Response updateInfo(@RequestBody MemberInfoDTO dto, HttpServletRequest request) {
+        UmsMember member = getMember(request);
+        String token = request.getHeader(StringConstant.TOKEN);
+        EntityUtils.assign(member, dto);
+        //更新数据库
+        memberService.updateById(member);
+        //更新Redis
+        template.boundValueOps(token).set(JSON.toJSONString(member));
+        //返回新的用户信息
+        log.info("用户信息更新成功");
+        return Response.success(ResponseCode.UPDATE_INFO_SUCCESS, dto);
+    }
 }
