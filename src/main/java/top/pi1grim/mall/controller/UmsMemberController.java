@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 import top.pi1grim.mall.common.utils.EntityUtils;
@@ -15,6 +16,7 @@ import top.pi1grim.mall.core.constant.RedisConstant;
 import top.pi1grim.mall.core.constant.StringConstant;
 import top.pi1grim.mall.dto.LoginDTO;
 import top.pi1grim.mall.dto.MemberInfoDTO;
+import top.pi1grim.mall.dto.PasswordDTO;
 import top.pi1grim.mall.dto.RegisterDTO;
 import top.pi1grim.mall.entity.UmsMember;
 import top.pi1grim.mall.exception.MemberException;
@@ -133,5 +135,25 @@ public class UmsMemberController {
         //返回新的用户信息
         log.info("用户信息更新成功");
         return Response.success(ResponseCode.UPDATE_INFO_SUCCESS, dto);
+    }
+
+    @PostMapping("/password")
+    @Operation(summary = "修改用户密码API", description = "使用POST请求，在Header中携带token，成功则返回用户名，成功代码2025")
+    public Response updatePassword(@RequestBody PasswordDTO dto, HttpServletRequest request) {
+        UmsMember member = getMember(request);
+        String token = request.getHeader(StringConstant.TOKEN);
+
+        if(EntityUtils.fieldIsNull(dto)){
+            throw new MemberException(ErrorCode.ILLEGAL_REQUEST, dto);
+        }
+        //判断旧密码是否正确
+        if(!member.getPassword().equals(dto.getOldPassword())){
+            throw new MemberException(ErrorCode.OLD_PASSWORD_MISMATCH, dto);
+        }
+
+        member.setPassword(dto.getNewPassword());
+        memberService.updateById(member);
+        template.boundValueOps(token).set(JSON.toJSONString(member));
+        return Response.success(ResponseCode.UPDATE_PASSWORD_SUCCESS, member.getUsername());
     }
 }

@@ -11,6 +11,7 @@ public enum ResponseCode implements GenericEnum{
     LOGIN_SUCCESS(2010, "用户登录成功"),
     RETURN_INFO_SUCCESS(2015, "返回用户信息成功"),
     UPDATE_INFO_SUCCESS(2020, "更新用户信息成功"),
+    UPDATE_PASSWORD_SUCCESS(2025, "更新密码成功"),
 
     ;
     private final int code;
