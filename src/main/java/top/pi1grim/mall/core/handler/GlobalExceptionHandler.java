@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
+import top.pi1grim.mall.core.constant.StringConstant;
 import top.pi1grim.mall.exception.BaseException;
 import top.pi1grim.mall.common.response.Response;
 
@@ -17,7 +18,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BaseException.class)
     public ResponseEntity<Response> handler(BaseException exception, HttpServletRequest request) {
         Response response = Response.error(exception, request.getRequestURI());
-        log.warn("Exception catch!", exception);
+        log.warn(StringConstant.EXCEPTION_OCCUR, exception);
         return new ResponseEntity<>(response, new HttpHeaders(), exception.getErrorCode().getStatus());
     }
 }

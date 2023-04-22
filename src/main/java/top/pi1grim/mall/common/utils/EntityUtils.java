@@ -2,6 +2,7 @@ package top.pi1grim.mall.common.utils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import top.pi1grim.mall.core.constant.StringConstant;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -33,7 +34,7 @@ public class EntityUtils {
                 Object o = method.invoke(obj);
                 if(Objects.isNull(o) || StringUtils.isEmpty(o.toString()))return true;
             } catch (Exception e) {
-                log.error("error occur!", e);
+                log.error(StringConstant.EXCEPTION_OCCUR, e);
             }
         }
         return false;
@@ -71,7 +72,7 @@ public class EntityUtils {
                 }
             }
         } catch (Exception e) {
-            log.error("error occur!", e);
+            log.error(StringConstant.EXCEPTION_OCCUR, e);
         }
     }
 }
