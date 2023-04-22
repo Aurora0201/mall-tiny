@@ -154,6 +154,7 @@ public class UmsMemberController {
         member.setPassword(dto.getNewPassword());
         memberService.updateById(member);
         template.boundValueOps(token).set(JSON.toJSONString(member));
+        log.info("更新用户密码 ====> " + member);
         return Response.success(ResponseCode.UPDATE_PASSWORD_SUCCESS, member.getUsername());
     }
 }
