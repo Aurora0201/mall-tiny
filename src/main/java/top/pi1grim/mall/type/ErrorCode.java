@@ -12,7 +12,9 @@ public enum ErrorCode {
     USERNAME_EXIST(1010, HttpStatus.OK, "用户名已存在"),
     MEMBER_NOT_AVAILABLE(1015, HttpStatus.OK, "用户不可用"),
     USERNAME_PASSWORD_MISMATCH(1020, HttpStatus.OK, "账号密码不匹配"),
-    MEMBER_NOT_EXIST(1025, HttpStatus.OK, "用户不存在，请确认用户名是否输入正确")
+    MEMBER_NOT_EXIST(1025, HttpStatus.OK, "用户不存在，请确认用户名是否输入正确"),
+    NO_TOKEN_CARRIED(1030, HttpStatus.OK, "访问敏感资源未携带TOKEN"),
+    TOKEN_EXPIRATION(1035, HttpStatus.OK, "TOKEN已过期，请重新登录"),
 
     ;
     private final int code;
