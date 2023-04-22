@@ -3,6 +3,7 @@ package top.pi1grim.mall.core.interceptor;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -10,6 +11,7 @@ import top.pi1grim.mall.core.constant.StringConstant;
 import top.pi1grim.mall.exception.TokenException;
 import top.pi1grim.mall.type.ErrorCode;
 
+@Slf4j
 public class TokenCheck implements HandlerInterceptor {
 
     @Resource
@@ -30,7 +32,7 @@ public class TokenCheck implements HandlerInterceptor {
         if (StringUtils.isEmpty(json)) {
             throw new TokenException(ErrorCode.TOKEN_EXPIRATION, null);
         }
-
+        log.info("拦截用户请求 ====> " + json);
         return true;
     }
 }
