@@ -15,6 +15,7 @@ public enum ErrorCode {
     MEMBER_NOT_EXIST(1025, HttpStatus.OK, "用户不存在，请确认用户名是否输入正确"),
     NO_TOKEN_CARRIED(1030, HttpStatus.OK, "访问敏感资源未携带TOKEN"),
     TOKEN_EXPIRATION(1035, HttpStatus.OK, "TOKEN已过期，请重新登录"),
+    OLD_PASSWORD_MISMATCH(1040, HttpStatus.OK, "旧密码不一致"),
 
     ;
     private final int code;
