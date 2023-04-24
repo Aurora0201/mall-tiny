@@ -7,7 +7,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 import top.pi1grim.mall.common.utils.EntityUtils;
@@ -50,6 +51,8 @@ public class UmsMemberController {
     @Resource
     private StringRedisTemplate template;
 
+    @Resource
+    private RedissonClient client;
 
     private UmsMember getMember(HttpServletRequest request) {
         String token = request.getHeader(StringConstant.TOKEN);
@@ -64,22 +67,33 @@ public class UmsMemberController {
         if(EntityUtils.fieldIsNull(registerDTO)){
             throw new MemberException(ErrorCode.ILLEGAL_REQUEST, registerDTO);
         }
+        //对用户名上锁
+        RLock rLock = client.getLock(registerDTO.getUsername());
 
-        //验证用户名是否已经注册
-        UmsMember member = memberService.getOne(new LambdaQueryWrapper<UmsMember>().eq(UmsMember::getUsername, registerDTO.getUsername()));
-        if(Objects.nonNull(member)){
-            throw new MemberException(ErrorCode.USERNAME_EXIST, member.getUsername());
+        try{
+            UmsMember member;
+            if (rLock.tryLock(RedisConstant.TRY_LOCK_TIME, RedisConstant.LOCK_TIME, TimeUnit.SECONDS)) {
+                //验证用户名是否已经注册
+                member = memberService.getOne(new LambdaQueryWrapper<UmsMember>().eq(UmsMember::getUsername, registerDTO.getUsername()));
+                if(Objects.nonNull(member)){
+                    throw new MemberException(ErrorCode.USERNAME_EXIST, member.getUsername());
+                }
+                //插入数据库
+                member = new UmsMember().setCreatedTime(LocalDateTime.now());
+                EntityUtils.assign(member, registerDTO);
+
+                if (Objects.nonNull(member)){
+                    memberService.save(member);
+                }
+                log.info("注册成功 ====> " + member);
+            }
+        }catch (InterruptedException e){
+            log.error("注册时异常", e);
+            Thread.currentThread().interrupt();
+        }finally {
+            rLock.unlock();
         }
 
-        //插入数据库
-        member = new UmsMember().setCreatedTime(LocalDateTime.now());
-        EntityUtils.assign(member, registerDTO);
-
-        if (Objects.nonNull(member)){
-            memberService.save(member);
-        }
-
-        log.info("注册成功 ====> " + member);
         return Response.success(ResponseCode.REGISTER_SUCCESS, registerDTO.getUsername());
     }
 
