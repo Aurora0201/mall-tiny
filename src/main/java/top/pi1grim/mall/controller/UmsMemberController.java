@@ -1,6 +1,7 @@
 package top.pi1grim.mall.controller;
 
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,6 +27,7 @@ import top.pi1grim.mall.service.UmsMemberService;
 import top.pi1grim.mall.type.ErrorCode;
 import top.pi1grim.mall.type.ResponseCode;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -120,8 +122,11 @@ public class UmsMemberController {
 
         //先生成Token
         String token = JWTUtils.genToken(loginDTO.getUsername());
+        JSONObject session = new JSONObject();
+        session.put("member", member);
+        session.put("login_time", Instant.now());
         //放入Redis中，设置存活时间
-        template.boundValueOps(token).set(JSON.toJSONString(member), RedisConstant.TOKEN_EXPIRE_TIME, TimeUnit.SECONDS);
+        template.boundValueOps(token).set(JSON.toJSONString(session), RedisConstant.TOKEN_EXPIRE_TIME, TimeUnit.SECONDS);
         log.info("登录成功 ====> " + member);
         return Response.success(ResponseCode.LOGIN_SUCCESS, token);
     }
