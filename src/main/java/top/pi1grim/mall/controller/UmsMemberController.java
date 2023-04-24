@@ -1,13 +1,15 @@
 package top.pi1grim.mall.controller;
 
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 import top.pi1grim.mall.common.utils.EntityUtils;
@@ -25,6 +27,7 @@ import top.pi1grim.mall.service.UmsMemberService;
 import top.pi1grim.mall.type.ErrorCode;
 import top.pi1grim.mall.type.ResponseCode;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -50,6 +53,8 @@ public class UmsMemberController {
     @Resource
     private StringRedisTemplate template;
 
+    @Resource
+    private RedissonClient client;
 
     private UmsMember getMember(HttpServletRequest request) {
         String token = request.getHeader(StringConstant.TOKEN);
@@ -64,22 +69,33 @@ public class UmsMemberController {
         if(EntityUtils.fieldIsNull(registerDTO)){
             throw new MemberException(ErrorCode.ILLEGAL_REQUEST, registerDTO);
         }
+        //对用户名上锁
+        RLock rLock = client.getLock(registerDTO.getUsername());
 
-        //验证用户名是否已经注册
-        UmsMember member = memberService.getOne(new LambdaQueryWrapper<UmsMember>().eq(UmsMember::getUsername, registerDTO.getUsername()));
-        if(Objects.nonNull(member)){
-            throw new MemberException(ErrorCode.USERNAME_EXIST, member.getUsername());
+        try{
+            UmsMember member;
+            if (rLock.tryLock(RedisConstant.TRY_LOCK_TIME, RedisConstant.LOCK_TIME, TimeUnit.SECONDS)) {
+                //验证用户名是否已经注册
+                member = memberService.getOne(new LambdaQueryWrapper<UmsMember>().eq(UmsMember::getUsername, registerDTO.getUsername()));
+                if(Objects.nonNull(member)){
+                    throw new MemberException(ErrorCode.USERNAME_EXIST, member.getUsername());
+                }
+                //插入数据库
+                member = new UmsMember().setCreatedTime(LocalDateTime.now());
+                EntityUtils.assign(member, registerDTO);
+
+                if (Objects.nonNull(member)){
+                    memberService.save(member);
+                }
+                log.info("注册成功 ====> " + member);
+            }
+        }catch (InterruptedException e){
+            log.error("注册时异常", e);
+            Thread.currentThread().interrupt();
+        }finally {
+            rLock.unlock();
         }
 
-        //插入数据库
-        member = new UmsMember().setCreatedTime(LocalDateTime.now());
-        EntityUtils.assign(member, registerDTO);
-
-        if (Objects.nonNull(member)){
-            memberService.save(member);
-        }
-
-        log.info("注册成功 ====> " + member);
         return Response.success(ResponseCode.REGISTER_SUCCESS, registerDTO.getUsername());
     }
 
@@ -106,8 +122,11 @@ public class UmsMemberController {
 
         //先生成Token
         String token = JWTUtils.genToken(loginDTO.getUsername());
+        JSONObject session = new JSONObject();
+        session.put("member", member);
+        session.put("login_time", Instant.now());
         //放入Redis中，设置存活时间
-        template.boundValueOps(token).set(JSON.toJSONString(member), RedisConstant.TOKEN_EXPIRE_TIME, TimeUnit.SECONDS);
+        template.boundValueOps(token).set(JSON.toJSONString(session), RedisConstant.TOKEN_EXPIRE_TIME, TimeUnit.SECONDS);
         log.info("登录成功 ====> " + member);
         return Response.success(ResponseCode.LOGIN_SUCCESS, token);
     }
